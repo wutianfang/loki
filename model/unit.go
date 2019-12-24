@@ -2,6 +2,7 @@ package model
 
 import (
 	"github.com/go-xorm/xorm"
+	"github.com/wutianfang/loki/common/conf"
 	"time"
 )
 
@@ -9,16 +10,20 @@ type UnitModel struct {
 	engine *xorm.Engine
 }
 
-type Units struct {
+type Unit struct {
 	Id int
 	Name string
 	Count int
 	CreateTime  time.Time
 }
 
+func (row Unit) TableName() string {
+	return "units"
+}
+
 func NewUnitModel() UnitModel {
 
-	engine,_ := xorm.NewEngine("sqlite3", "/Users/wutianfang/go/src/github.com/wutianfang/loki/db/loki.db")
+	engine,_ := xorm.NewEngine("sqlite3", conf.DB_FILE_PATH)
 /*
 	if err!= nil {
 		return nil
@@ -29,22 +34,22 @@ func NewUnitModel() UnitModel {
 	}
 }
 
-func (engine *UnitModel) GetList() []Units {
+func (engine *UnitModel) GetList() []Unit {
 
 	session := engine.engine.NewSession()
 
-	units := []Units{}
+	units := []Unit{}
 	_ = session.Find(&units)
 
 	return units
 }
 
-func (engine UnitModel) GetOne(id int ) Units {
+func (engine UnitModel) GetOne(id int ) Unit {
 
 	session := engine.engine.NewSession()
 	session.Where("id=?", id)
 
-	unit := Units{}
+	unit := Unit{}
 	_,_ = session.Get(&unit)
 
 	return unit

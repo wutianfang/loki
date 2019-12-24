@@ -4,9 +4,73 @@
     <meta charset="UTF-8">
     <title>Unit Detail</title>
     <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/common.js"></script>
+    <style>
+        .part_title {
+            padding-right:20px;
+        }
+    </style>
 </head>
 <body>
-<h1>Unit Detail</h1>
+<h1 id="unit_detail_header">l</h1>
+
+<input type="text" style="width:300px;font-size:20px;" id="word_text" />
+
+<button style="font-size:20px;margin-left:20px;" onclick="click_query()">查询</button>
+
+<div id="error_msg"></div>
+<div id="word_info"></div>
+
+<script>
+    var url = "/unit/detail?id="+aGET['id']
+    $.ajax({
+        url: url,
+        success: function(result){
+            $("#unit_detail_header").html("Unit: "+result.Name)
+
+        }}
+    );
+
+    function click_query() {
+        var query_word = $("#word_text").val()
+        console.log(query_word)
+        var queryUrl = "/word/query?word=" + query_word
+
+        $("#error_msg").html("");
+        $("#word_info").html("");
+
+        $.ajax({
+            url: queryUrl,
+            success: function(result){
+                console.log(result)
+
+                if (result.errno!=0) {
+                    $("#error_msg").html(result.error)
+                    return
+                }
+                var infoHtml = '<ol>';
+                var wordInfo = result.data.word.Info
+                for(var i=0; i< wordInfo.parts.length; i++) {
+                    console.log( wordInfo.parts[i])
+                    parts = wordInfo.parts[i]
+                    infoHtml += '<li><span class="part_title">' + parts.part + '</span>' + escapeHTMLString(parts.means.join(';')) + '</li>'
+                }
+                infoHtml += '</ol>';
+
+                $("#word_info").html(infoHtml);
+
+            }}
+        );
+
+    }
+
+    function escapeHTMLString(str) {
+        str = str.replace(/</g,'&lt;');
+        str = str.replace(/>/g,'&gt;');
+        return str;
+    }
+
+</script>
 
 </body>
 </html>
