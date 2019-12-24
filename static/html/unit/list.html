@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Unit List</title>
+    <script src="/static/js/jquery.min.js"></script>
+</head>
+<body>
+<h1>Unit List</h1>
+
+<ul id="unit_ul">
+</ul>
+
+<script>
+
+    $.ajax({
+        url: "/unit/list",
+        success: function(result, r2){
+            var unitListHmtl = "";
+            for(i=0; i< result.length; i++) {
+                console.log(result[i])
+                unitListHmtl += '<li><a href="/static/html/unit/detail.html?id='+result[i].Id+'">'+result[i].Name+'</a></li>';
+            }
+            $("#unit_ul").html(unitListHmtl)
+        }}
+    );
+
+</script>
+</body>
+</html>
