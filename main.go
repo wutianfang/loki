@@ -20,6 +20,9 @@ func main() {
 
 	e.GET("/unit/list", unit.List)
 	e.GET("/unit/detail", unit.Detail)
+	e.Any("/unit/add_word", unit.AddWord)
+	e.GET("/unit/word_list", unit.WordList)
+
 	e.GET("/word/query", word.Query)
 
 

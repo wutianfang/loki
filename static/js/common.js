@@ -21,3 +21,13 @@ function escapeHTMLString(str) {
     str = str.replace(/>/g,'&gt;');
     return str;
 }
+
+function playAudio(mp3_file) {
+    //var url = '/WRecite/audio/' + type + '/' + word.slice(0,2) + '/' + word + '.mp3';
+    var audio = document.createElement("audio");
+    old && old.pause(),
+        audio.src = mp3_file,
+        old = audio,
+        audio.play();
+}
+old = null

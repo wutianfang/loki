@@ -9,6 +9,16 @@
         .part_title {
             padding-right:20px;
         }
+        .yinbiao {
+            padding-left:10px;
+            padding-right:10px;
+        }
+        #word_text {
+            margin-bottom:10px;
+        }
+        th {
+            text-align: left;
+        }
     </style>
 </head>
 <body>
@@ -18,8 +28,9 @@
 
 <button style="font-size:20px;margin-left:20px;" onclick="click_query()">查询</button>
 
-<div id="error_msg"></div>
+<div id="error_msg" style="color:red;"></div>
 <div id="word_info"></div>
+<div id="word_list"></div>
 
 <script>
     var url = "/unit/detail?id="+aGET['id']
@@ -48,14 +59,14 @@
                     $("#error_msg").html(result.error)
                     return
                 }
-                var infoHtml = '<ol>';
-                var wordInfo = result.data.word.Info
-                for(var i=0; i< wordInfo.parts.length; i++) {
-                    console.log( wordInfo.parts[i])
-                    parts = wordInfo.parts[i]
-                    infoHtml += '<li><span class="part_title">' + parts.part + '</span>' + escapeHTMLString(parts.means.join(';')) + '</li>'
-                }
-                infoHtml += '</ol>';
+                infoHtml = '';
+                var wordInfo = result.data.word.Info;
+                infoHtml += '<span class="yinbiao">英音:</span><a href="#" onmouseover="playAudio(\''+wordInfo.ph_en_mp3+'\')">'+ wordInfo.ph_en + '</a>';
+                infoHtml += '<span class="yinbiao">美音:</span><a href="#" onmouseover="playAudio(\''+wordInfo.ph_am_mp3+'\')">'+ wordInfo.ph_am + '</a>';
+                infoHtml += buildWordInfoHtml(wordInfo)
+
+
+                infoHtml += '<button style="margin-left: 40px;" onclick="add_work(\''+query_word+'\','+aGET['id']+')">添加到单元</button>';
 
                 $("#word_info").html(infoHtml);
 
@@ -64,11 +75,69 @@
 
     }
 
-    function escapeHTMLString(str) {
-        str = str.replace(/</g,'&lt;');
-        str = str.replace(/>/g,'&gt;');
-        return str;
+    function buildWordInfoHtml(wordInfo) {
+        infoHtml = '<ol>';
+        for(var i=0; i< wordInfo.parts.length; i++) {
+            console.log( wordInfo.parts[i])
+            parts = wordInfo.parts[i]
+            infoHtml += '<li><span class="part_title">' + parts.part + '</span>' + escapeHTMLString(parts.means.join(';')) + '</li>'
+        }
+        infoHtml += '</ol>';
+        return infoHtml;
     }
+
+    function add_work(query_word, unit_id) {
+        var queryUrl = "/unit/add_word"
+        $.ajax({
+            url:queryUrl,
+            type: 'POST',
+            data:{
+                "unit_id":unit_id,
+                "word":query_word
+            },
+            success:function(result) {
+
+                if (result.errno!=0) {
+                    $("#error_msg").html(result.error)
+                    return
+                }
+
+            }
+        })
+    }
+
+    var wordList = []
+    function loadWordList() {
+        var queryUrl = "/unit/word_list?unit_id=" + aGET['id']
+        $.ajax({
+            url:queryUrl,
+            success:function(result) {
+                if (result.errno!=0) {
+                    $("#error_msg").html(result.error)
+                    return
+                }
+                var listHtml = '<table border="1"><tr><th width="150px;">单词</th><th width="200px;">音标</th><th width="500px;">说明</th></tr>';
+                for(i=0; i< result.Data.length; i++) {
+                    row = result.Data[i]
+                    listHtml += "<tr><td>"+ row.Word + '</td><td>';
+
+                    listHtml += '<span class="yinbiao">英音:</span><a href="#" onmouseover="playAudio(\''+row.Info.ph_en_mp3+'\')">'+ row.Info.ph_en + '</a>';
+                    listHtml += '<br />';
+                    listHtml += '<span class="yinbiao">美音:</span><a href="#" onmouseover="playAudio(\''+row.Info.ph_am_mp3+'\')">'+ row.Info.ph_am + '</a>';
+                    listHtml += '</td>';
+                    listHtml += '<td>' + buildWordInfoHtml(row.Info) + '</td>';
+                    listHtml += '</tr>';
+                }
+
+                listHtml += '</table>';
+                $("#word_list").html(listHtml);
+
+            }
+        })
+    }
+    loadWordList()
+
+
 
 </script>
 
