@@ -7,6 +7,7 @@ import (
 	"github.com/wutianfang/loki/model"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 type QueryResponse struct{
@@ -42,7 +43,7 @@ func Query(c echo.Context) error {
 	}
 
 	newWord := model.Word{
-		Word:params.Word,
+		Word:strings.ToLower(params.Word),
 		Info:*wordInfo,
 	}
 	err = wordModel.Insert(newWord)
@@ -83,7 +84,7 @@ func requestIciba(word string) (*model.WordInfo,error) {
 			Exchange map[string][]string `json:"exchange"`
 			Symbols []model.WordInfo `json:"symbols"`
 		} `json:"baesInfo"`
-
+		Sentence []model.Sentence `json:"sentence"`
 	}{}
 
 	_ = json.Unmarshal(str, &rawResponse)
@@ -96,7 +97,7 @@ func requestIciba(word string) (*model.WordInfo,error) {
 	}
 	ret = &rawResponse.BaseInfo.Symbols[0]
 	ret.Exchange = rawResponse.BaseInfo.Exchange
-
+	ret.Sentences = rawResponse.Sentence
 
 	return ret,nil
 }

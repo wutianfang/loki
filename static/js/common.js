@@ -31,3 +31,9 @@ function playAudio(mp3_file) {
         audio.play();
 }
 old = null
+
+function shuffle(array) {
+    return array.sort(function() {
+        return Math.random() - 0.5
+    });
+}

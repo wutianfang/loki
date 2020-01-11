@@ -4,6 +4,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/wutianfang/loki/common"
 	"github.com/wutianfang/loki/model"
+	"strings"
 )
 
 
@@ -23,6 +24,8 @@ func AddWord(c echo.Context) error {
 	response := AddWordResponse{}
 
 	_ = c.Bind(&params)
+	params.Word = strings.ToLower(params.Word)
+
 
 	if params.UnitId==0 || params.Word == "" {
 		response.Errno = 2

@@ -19,6 +19,15 @@ type Word struct {
 	Info WordInfo `xorm:"json 'info'"`
 }
 
+type Sentence struct {
+	NetworkId int `json:"network_id"`
+	NetworkEn string `json:"network_en"`
+	NetworkCn string `json:"network_cn"`
+	TtsMp3 string `json:"tts_mp3"`
+	SourceType int `json:"source_type"`
+	SourceId int `json:"source_id"`
+}
+
 type WordInfo struct {
 	PhEn string `json:"ph_en"`
 	PhAm string `json:"ph_am"`
@@ -29,6 +38,7 @@ type WordInfo struct {
 		Means []string `json:"means"`
 	} `json:"parts"`
 	Exchange map[string][]string `json:"exchange"`
+	Sentences []Sentence `json:"sentences,omitempty"`
 }
 
 func (row Word) TableName() string {
@@ -72,6 +82,7 @@ func (model *WordModel) Insert(word Word) (err error) {
 	}
 	word.Info.PhAmMp3 = nil
 	word.Info.PhEnMp3 = nil
+	word.CreateTime = time.Now()
 
 	_, err = model.engine.NewSession().Insert(word)
 	return err

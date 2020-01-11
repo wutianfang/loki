@@ -19,19 +19,60 @@
         th {
             text-align: left;
         }
+        #word_list {
+            margin-top:30px;
+        }
+        .hidden_table {
+            color:#FFFFFF!important;
+        }
+        .hidden_table a:hover{
+            color:#FFFFFF;
+        }
+        .hidden_table a{
+            color:#FFFFFF;
+        }
+        .hidden_table a:visited{
+            color:#FFFFFF;
+        }
+        .col_word {
+            padding-left:10px;
+        }
+        .col_num {
+            width:30px;
+            text-align:center;
+            color:black;!important;
+        }
+        .sentence_cn {
+            padding-top: 10px;
+            padding-bottom: 20px;
+            color: #3c4855;
+        }
+        .hidden_table .sentence_cn {
+            color: #FFFFFF;
+        }
+        .icon-sound {
+            display: inline-block;
+            vertical-align: middle;
+            background-position: -191px -190px;
+            cursor: pointer;
+            margin-left: 4px;
+            background-image: url(/static/img/search.png);
+            height: 16px;
+            width: 17px;
+        }
     </style>
 </head>
 <body>
 <h1 id="unit_detail_header">l</h1>
 
-<input type="text" style="width:300px;font-size:20px;" id="word_text" />
+<input type="text" style="width:300px;font-size:20px;" id="word_text" onkeydown="if(event.keyCode==13){ click_query();}" />
 
 <button style="font-size:20px;margin-left:20px;" onclick="click_query()">查询</button>
 
 <div id="error_msg" style="color:red;"></div>
 <div id="word_info"></div>
 <div id="word_list"></div>
-
+<br /><br /><br /><br /><br /><br />
 <script>
     var url = "/unit/detail?id="+aGET['id']
     $.ajax({
@@ -44,7 +85,6 @@
 
     function click_query() {
         var query_word = $("#word_text").val()
-        console.log(query_word)
         var queryUrl = "/word/query?word=" + query_word
 
         $("#error_msg").html("");
@@ -53,7 +93,6 @@
         $.ajax({
             url: queryUrl,
             success: function(result){
-                console.log(result)
 
                 if (result.errno!=0) {
                     $("#error_msg").html(result.error)
@@ -66,9 +105,11 @@
                 infoHtml += buildWordInfoHtml(wordInfo)
 
 
-                infoHtml += '<button style="margin-left: 40px;" onclick="add_work(\''+query_word+'\','+aGET['id']+')">添加到单元</button>';
+                infoHtml += '<button style="margin-left: 40px;" onclick="add_word(\''+query_word+'\','+aGET['id']+')">添加到单元</button>';
 
                 $("#word_info").html(infoHtml);
+
+                playAudio(wordInfo.ph_am_mp3)
 
             }}
         );
@@ -78,15 +119,24 @@
     function buildWordInfoHtml(wordInfo) {
         infoHtml = '<ol>';
         for(var i=0; i< wordInfo.parts.length; i++) {
-            console.log( wordInfo.parts[i])
             parts = wordInfo.parts[i]
             infoHtml += '<li><span class="part_title">' + parts.part + '</span>' + escapeHTMLString(parts.means.join(';')) + '</li>'
         }
         infoHtml += '</ol>';
+        if (wordInfo.sentences && wordInfo.sentences.length>0) {
+            infoHtml += '<hr />'
+            infoHtml += '<ol>';
+            for (var i=0; i< wordInfo.sentences.length; i++) {
+                var sentence = wordInfo.sentences[i]
+                infoHtml += '<li>' + sentence.network_en + '<span class="icon-sound" onmouseover="playAudio(\''+sentence.tts_mp3+'\')"></span><br />';
+                infoHtml += '<span class="sentence_cn">' + sentence.network_cn + '</span></li>';
+            }
+            infoHtml += '</ol>';
+        }
         return infoHtml;
     }
 
-    function add_work(query_word, unit_id) {
+    function add_word(query_word, unit_id) {
         var queryUrl = "/unit/add_word"
         $.ajax({
             url:queryUrl,
@@ -102,6 +152,8 @@
                     return
                 }
 
+                loadWordList()
+
             }
         })
     }
@@ -116,26 +168,80 @@
                     $("#error_msg").html(result.error)
                     return
                 }
-                var listHtml = '<table border="1"><tr><th width="150px;">单词</th><th width="200px;">音标</th><th width="500px;">说明</th></tr>';
-                for(i=0; i< result.Data.length; i++) {
-                    row = result.Data[i]
-                    listHtml += "<tr><td>"+ row.Word + '</td><td>';
+                wordList = result.Data
+                var listHtml = "";
+                listHtml += "总计单词 ： " + result.Data.length + "个。";
+                listHtml += '&nbsp;&nbsp;<button onclick="start_moxie();">开始默写</button>&nbsp;&nbsp;<button>开始默写(中翻英)</button><br /><br />'
+                listHtml += buildWordList(result.Data)
 
-                    listHtml += '<span class="yinbiao">英音:</span><a href="#" onmouseover="playAudio(\''+row.Info.ph_en_mp3+'\')">'+ row.Info.ph_en + '</a>';
-                    listHtml += '<br />';
-                    listHtml += '<span class="yinbiao">美音:</span><a href="#" onmouseover="playAudio(\''+row.Info.ph_am_mp3+'\')">'+ row.Info.ph_am + '</a>';
-                    listHtml += '</td>';
-                    listHtml += '<td>' + buildWordInfoHtml(row.Info) + '</td>';
-                    listHtml += '</tr>';
-                }
-
-                listHtml += '</table>';
                 $("#word_list").html(listHtml);
 
             }
         })
     }
     loadWordList()
+
+    function buildWordList(wordRows) {
+        var listHtml = '<table border="1" class="word_table"><tr><td>&nbsp;</td><th width="150px;">单词</th><th width="200px;">音标</th><th width="500px;">说明</th></tr>';
+        for(i=0; i< wordRows.length; i++) {
+            row = wordRows[i]
+            listHtml += '<tr><td class="col_num" >'+(i+1)+"</td>"
+            listHtml += '<td class="col_word">' + row.Word + '</td><td>';
+            listHtml += '<span class="yinbiao">英音:</span><a href="#" onmouseover="playAudio(\''+row.Info.ph_en_mp3+'\')">'+ row.Info.ph_en + '</a>';
+            listHtml += '<br />';
+            listHtml += '<span class="yinbiao">美音:</span><a href="#" onmouseover="playAudio(\''+row.Info.ph_am_mp3+'\')">'+ row.Info.ph_am + '</a>';
+            listHtml += '</td>';
+            listHtml += '<td>' + buildWordInfoHtml(row.Info) + '</td>';
+            listHtml += '</tr>';
+        }
+
+        listHtml += '</table>';
+        return listHtml
+    }
+
+
+    var moxieIndex = 0
+    function start_moxie() {
+
+        shuffle(wordList)
+        var listHtml = ''
+        moxieIndex = 0
+
+        listHtml += '共有单词' + wordList.length + '个。现在默写到底 <span id="moxie_index">0</span>个单词。';
+        listHtml += '<button onclick="moxie_next()">下一个单词</button>&nbsp;&nbsp;&nbsp;'
+        listHtml += '<button onclick="moxie_retry()">重复当前单词</button>'
+        listHtml += '<br /><br />'
+
+        listHtml += '<div class="hidden_table">'+buildWordList(wordList) + '</div>';
+
+        $("#word_list").html(listHtml);
+    }
+
+    function moxie_next() {
+
+        if (moxieIndex> wordList.length) {
+            alert('默写完成！');
+            return;
+        }
+
+        playAudio(wordList[moxieIndex].Info.ph_am_mp3)
+
+        $('#moxie_index').html(++moxieIndex)
+    }
+
+    function moxie_retry() {
+        playAudio(wordList[moxieIndex-1].Info.ph_am_mp3)
+    }
+
+    $(document).keydown(function(event) {
+        if (event.keyCode==32) {
+            moxie_next()
+            event.preventDefault();
+        } else if (event.keyCode == 91) {
+            moxie_retry()
+            event.preventDefault();
+        }
+    });
 
 
 

@@ -91,6 +91,7 @@ func (engine *UnitModel) GetWordList(unit_id int) ([]Word, error){
 
 	wordSession := engine.engine.NewSession()
 	wordSession.In("word", words)
+	wordSession.OrderBy("create_time desc")
 	err = wordSession.Find(&retWords)
 
 	for index, row := range retWords {
