@@ -31,8 +31,10 @@ type Sentence struct {
 type WordInfo struct {
 	PhEn string `json:"ph_en"`
 	PhAm string `json:"ph_am"`
+	PhOther *string `json:"ph_other"`
 	PhEnMp3 *string `json:"ph_en_mp3,omitempty"`
 	PhAmMp3 *string `json:"ph_am_mp3,omitempty"`
+	PhTtsMp3 *string `json:"ph_tts_mp3,omitempty"`
 	Parts []struct {
 		Part string `json:"part"`
 		Means []string `json:"means"`

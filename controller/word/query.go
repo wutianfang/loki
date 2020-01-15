@@ -95,9 +95,25 @@ func requestIciba(word string) (*model.WordInfo,error) {
 	if rawResponse.BaseInfo.Symbols == nil {
 		return nil, fmt.Errorf("query iciba 错误：单词单词不存在")
 	}
+	if *rawResponse.BaseInfo.Symbols[0].PhAmMp3 == "" && *rawResponse.BaseInfo.Symbols[0].PhTtsMp3 != "" {
+		*rawResponse.BaseInfo.Symbols[0].PhAmMp3 = *rawResponse.BaseInfo.Symbols[0].PhTtsMp3
+	}
+	if *rawResponse.BaseInfo.Symbols[0].PhEnMp3 == "" && *rawResponse.BaseInfo.Symbols[0].PhTtsMp3 != "" {
+		*rawResponse.BaseInfo.Symbols[0].PhEnMp3 = *rawResponse.BaseInfo.Symbols[0].PhTtsMp3
+	}
+	if rawResponse.BaseInfo.Symbols[0].PhEn == "" && *rawResponse.BaseInfo.Symbols[0].PhOther != "" {
+		rawResponse.BaseInfo.Symbols[0].PhEn = *rawResponse.BaseInfo.Symbols[0].PhOther
+	}
+	if rawResponse.BaseInfo.Symbols[0].PhAm == "" && *rawResponse.BaseInfo.Symbols[0].PhOther != "" {
+		rawResponse.BaseInfo.Symbols[0].PhAm = *rawResponse.BaseInfo.Symbols[0].PhOther
+	}
+	rawResponse.BaseInfo.Symbols[0].PhTtsMp3 = nil
+	rawResponse.BaseInfo.Symbols[0].PhOther = nil
+
 	ret = &rawResponse.BaseInfo.Symbols[0]
 	ret.Exchange = rawResponse.BaseInfo.Exchange
 	ret.Sentences = rawResponse.Sentence
+
 
 	return ret,nil
 }
