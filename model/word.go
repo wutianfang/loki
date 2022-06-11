@@ -74,14 +74,19 @@ func (model *WordModel) Query(word string) (*Word, error) {
 }
 
 func (model *WordModel) Insert(word Word) (err error) {
-	err = downloadFile(*word.Info.PhEnMp3, conf.MP3_FILE_PATH+"/en/"+word.Word[0:2]+"/"+word.Word+".mp3")
-	if err != nil {
-		return err
+	if word.Info.PhEnMp3 != nil {
+		err = downloadFile(*word.Info.PhEnMp3, conf.MP3_FILE_PATH+"/en/"+word.Word[0:2]+"/"+word.Word+".mp3")
+		if err != nil {
+			return err
+		}
 	}
-	err = downloadFile(*word.Info.PhAmMp3, conf.MP3_FILE_PATH+"/am/"+word.Word[0:2]+"/"+word.Word+".mp3")
-	if err != nil {
-		return err
+	if word.Info.PhAmMp3 != nil {
+		err = downloadFile(*word.Info.PhAmMp3, conf.MP3_FILE_PATH+"/am/"+word.Word[0:2]+"/"+word.Word+".mp3")
+		if err != nil {
+			return err
+		}
 	}
+
 	word.Info.PhAmMp3 = nil
 	word.Info.PhEnMp3 = nil
 	word.CreateTime = time.Now()

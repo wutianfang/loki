@@ -7,6 +7,7 @@ import (
 	"github.com/wutianfang/loki/model"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
 )
@@ -160,6 +161,7 @@ func requestIcibaV2(word string) (*model.WordInfo, error) {
 	ret := &model.WordInfo{}
 
 	client := &http.Client{}
+	word = url.QueryEscape(word)
 	icibaUrl := "http://www.iciba.com/word?w=" + word
 	request, _ := http.NewRequest("GET", icibaUrl, nil)
 	response, _ := client.Do(request)
