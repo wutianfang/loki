@@ -184,6 +184,12 @@ func requestIcibaV2(word string) (*model.WordInfo, error) {
 		ret.PhAm = wordInfo.BaesInfo.Symbols[0].PhAm
 		ret.PhEn = wordInfo.BaesInfo.Symbols[0].PhEn
 		ret.PhOther = &wordInfo.BaesInfo.Symbols[0].PhOther
+		if wordInfo.BaesInfo.Symbols[0].PhAmMp3 == "" && wordInfo.BaesInfo.Symbols[0].PhTtsMp3 != "" {
+			wordInfo.BaesInfo.Symbols[0].PhAmMp3 = wordInfo.BaesInfo.Symbols[0].PhTtsMp3
+		}
+		if wordInfo.BaesInfo.Symbols[0].PhEnMp3 == "" && wordInfo.BaesInfo.Symbols[0].PhTtsMp3 != "" {
+			wordInfo.BaesInfo.Symbols[0].PhEnMp3 = wordInfo.BaesInfo.Symbols[0].PhTtsMp3
+		}
 		ret.PhAmMp3 = &wordInfo.BaesInfo.Symbols[0].PhAmMp3
 		ret.PhEnMp3 = &wordInfo.BaesInfo.Symbols[0].PhEnMp3
 		ret.PhTtsMp3 = &wordInfo.BaesInfo.Symbols[0].PhTtsMp3
