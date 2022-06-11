@@ -103,8 +103,6 @@
                 infoHtml += '<span class="yinbiao">英音:</span><a href="#" onmouseover="playAudio(\''+wordInfo.ph_en_mp3+'\')">'+ wordInfo.ph_en + '</a>';
                 infoHtml += '<span class="yinbiao">美音:</span><a href="#" onmouseover="playAudio(\''+wordInfo.ph_am_mp3+'\')">'+ wordInfo.ph_am + '</a>';
                 infoHtml += buildWordInfoHtml(wordInfo)
-
-
                 infoHtml += '<button style="margin-left: 40px;" onclick="add_word(\''+query_word+'\','+aGET['id']+')">添加到单元</button>';
 
                 $("#word_info").html(infoHtml);
@@ -116,7 +114,7 @@
 
     }
 
-    function buildWordInfoHtml(wordInfo) {
+    function buildWordInfoHtml(wordInfo, wordIndex) {
         infoHtml = '<ol>';
         for(var i=0; i< wordInfo.parts.length; i++) {
             parts = wordInfo.parts[i]
@@ -128,12 +126,28 @@
             infoHtml += '<ol>';
             for (var i=0; i< wordInfo.sentences.length; i++) {
                 var sentence = wordInfo.sentences[i]
-                infoHtml += '<li>' + sentence.network_en + '<span class="icon-sound" onmouseover="playAudio(\''+sentence.tts_mp3+'\')"></span><br />';
+                if (i > 5) {
+                    infoHtml += '<li class="hide_sentence_'+wordIndex+'"  style="display:none">'
+                } else {
+                    infoHtml += '<li>'
+                }
+                infoHtml += sentence.network_en + '<span class="icon-sound" onmouseover="playAudio(\''+sentence.tts_mp3+'\')"></span><br />';
                 infoHtml += '<span class="sentence_cn">' + sentence.network_cn + '</span></li>';
             }
             infoHtml += '</ol>';
         }
+        if (wordInfo.sentences.length>5) {
+            infoHtml += '<button style="margin-left:20px;margin-bottom:10px" onclick="zhankai_sentences('+wordIndex+')">展开</button>'
+        }
         return infoHtml;
+    }
+
+    function zhankai_sentences(word_index) {
+        if ( $(".hide_sentence_"+word_index).css("display") =="none" ) {
+            $(".hide_sentence_"+word_index).css({display:"list-item"})
+        } else {
+            $(".hide_sentence_"+word_index).css({display:"none"})
+        }
     }
 
     function add_word(query_word, unit_id) {
@@ -182,7 +196,7 @@
     loadWordList()
 
     function buildWordList(wordRows) {
-        var listHtml = '<table border="1" class="word_table"><tr><td>&nbsp;</td><th width="150px;">单词</th><th width="200px;">音标</th><th width="500px;">说明</th></tr>';
+        var listHtml = '<table border="1" class="word_table"><tr><td>&nbsp;</td><th width="150px;">单词</th><th width="200px;">音标</th><th width="900px;">说明</th></tr>';
         for(i=0; i< wordRows.length; i++) {
             row = wordRows[i]
             listHtml += '<tr><td class="col_num" >'+(i+1)+"</td>"
@@ -191,7 +205,7 @@
             listHtml += '<br />';
             listHtml += '<span class="yinbiao">美音:</span><a href="#" onmouseover="playAudio(\''+row.Info.ph_am_mp3+'\')">'+ row.Info.ph_am + '</a>';
             listHtml += '</td>';
-            listHtml += '<td>' + buildWordInfoHtml(row.Info) + '</td>';
+            listHtml += '<td>' + buildWordInfoHtml(row.Info, i) + '</td>';
             listHtml += '</tr>';
         }
 

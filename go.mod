@@ -44,7 +44,8 @@ replace (
 )
 
 require (
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/go-xorm/xorm v0.7.9
-	github.com/labstack/echo/v4 v4.1.11
+	github.com/labstack/echo/v4 v4.7.2
 	github.com/mattn/go-sqlite3 v2.0.2+incompatible
 )
