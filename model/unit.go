@@ -3,7 +3,9 @@ package model
 import (
 	"github.com/go-xorm/xorm"
 	"github.com/wutianfang/loki/common/conf"
+	"strings"
 	"time"
+	"xorm.io/builder"
 )
 
 type UnitModel struct {
@@ -11,17 +13,17 @@ type UnitModel struct {
 }
 
 type Unit struct {
-	Id int
-	Name string
-	Count int
-	CreateTime  time.Time
+	Id         int
+	Name       string
+	Count      int
+	CreateTime time.Time
 }
 
 type UnitWordRelation struct {
 	//Id int
-	UnitId int
-	Word string
-	CreateTime  time.Time
+	UnitId     int
+	Word       string
+	CreateTime time.Time
 }
 
 func (row Unit) TableName() string {
@@ -30,14 +32,14 @@ func (row Unit) TableName() string {
 
 func NewUnitModel() UnitModel {
 
-	engine,_ := xorm.NewEngine("sqlite3", conf.DB_FILE_PATH)
-/*
-	if err!= nil {
-		return nil
-	}
+	engine, _ := xorm.NewEngine("sqlite3", conf.DB_FILE_PATH)
+	/*
+		if err!= nil {
+			return nil
+		}
 	*/
 	return UnitModel{
-		engine :engine,
+		engine: engine,
 	}
 }
 
@@ -51,48 +53,65 @@ func (engine *UnitModel) GetList() []Unit {
 	return units
 }
 
-func (engine UnitModel) GetOne(id int ) Unit {
+func (engine UnitModel) GetOne(id int) Unit {
 
 	session := engine.engine.NewSession()
 	session.Where("id=?", id)
 
 	unit := Unit{}
-	_,_ = session.Get(&unit)
+	_, _ = session.Get(&unit)
 
 	return unit
 }
 
-func (engine *UnitModel) AddWord(unit_id int,word string) error {
+func (engine *UnitModel) AddWord(unit_id int, word string) error {
 	one := UnitWordRelation{
-		UnitId:unit_id,
-		Word:word,
+		UnitId: unit_id,
+		Word:   word,
 	}
 	_, err := engine.engine.NewSession().Insert(one)
-	if err!=nil &&  err.Error() == "UNIQUE constraint failed: unit_word_relation.id" {
+	if err != nil && err.Error() == "UNIQUE constraint failed: unit_word_relation.id" {
 		return nil
 	}
 
 	return err
 }
 
-func (engine *UnitModel) GetWordList(unit_id int) ([]Word, error){
+func (engine *UnitModel) GetWordList(unitIds string) ([]Word, error) {
 	retWords := []Word{}
 
 	wordRelation := []UnitWordRelation{}
 
 	session := engine.engine.NewSession()
-	session.Where("unit_id=?", unit_id)
+
+	params := []interface{}{}
+	unitIdStrs := strings.Split(unitIds, ",")
+	for _, unitIdStr := range unitIdStrs {
+		params = append(params, unitIdStr)
+	}
+	session.And(builder.In("unit_id", params...))
+	//session.Where("unit_id in ("+strings.Join(elems, ","), unitIds...)
+	session.OrderBy("id desc")
 	err := session.Find(&wordRelation)
 
 	words := []string{}
-	for _,relation_row := range wordRelation {
+	for _, relation_row := range wordRelation {
 		words = append(words, relation_row.Word)
 	}
 
 	wordSession := engine.engine.NewSession()
 	wordSession.In("word", words)
-	wordSession.OrderBy("create_time desc")
-	err = wordSession.Find(&retWords)
+	//wordSession.OrderBy("create_time desc")
+	rawWord := []Word{}
+	wordMap := map[string]Word{}
+	err = wordSession.Find(&rawWord)
+	for _, word := range rawWord {
+		wordMap[word.Word] = word
+	}
+	for _, relation_row := range wordRelation {
+		targetWord := wordMap[relation_row.Word]
+		retWords = append(retWords, targetWord)
+	}
 
 	for index, row := range retWords {
 		phAmMp3 := "/word_mp3/am/" + row.Word[0:2] + "/" + row.Word + ".mp3"

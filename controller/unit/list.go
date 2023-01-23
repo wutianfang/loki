@@ -10,19 +10,16 @@ import (
 )
 
 type Units struct {
-	Id int
-	Name string
-	Count int
-	CreateTime  time.Time
+	Id         int
+	Name       string
+	Count      int
+	CreateTime time.Time
 }
-
-
 
 func List(c echo.Context) error {
 
 	unitModel := model.NewUnitModel()
 	units := unitModel.GetList()
-
 
 	err := c.JSON(200, units)
 
@@ -33,29 +30,27 @@ func Detail(c echo.Context) error {
 
 	unitModel := model.NewUnitModel()
 
-	params := struct{
-		Id  int `form:"id" query:"id"`
+	params := struct {
+		Id int `form:"id" query:"id"`
 	}{}
 
-	_= c.Bind(&params)
+	_ = c.Bind(&params)
 
 	unit := unitModel.GetOne(params.Id)
-
 
 	err := c.JSON(200, unit)
 
 	return err
 }
 
-type WordListParams struct{
-	UnitId int `form:"unit_id" query:"unit_id"`
+type WordListParams struct {
+	UnitIds string `form:"unit_id" query:"unit_id"`
 }
 
 type WordListResponse struct {
 	common.CommonResponse
 	Data []model.Word
 }
-
 
 func WordList(c echo.Context) (err error) {
 
@@ -66,8 +61,8 @@ func WordList(c echo.Context) (err error) {
 
 	unitModel := model.NewUnitModel()
 
-	response.Data, err = unitModel.GetWordList(params.UnitId)
-	if err!= nil {
+	response.Data, err = unitModel.GetWordList(params.UnitIds)
+	if err != nil {
 		response.Errno = 10
 		response.Error = err.Error()
 	}

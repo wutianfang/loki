@@ -114,6 +114,7 @@
 
     }
 
+    var hideSentencesCount = 3
     function buildWordInfoHtml(wordInfo, wordIndex) {
         infoHtml = '<ol>';
         for(var i=0; i< wordInfo.parts.length; i++) {
@@ -126,7 +127,7 @@
             infoHtml += '<ol>';
             for (var i=0; i< wordInfo.sentences.length; i++) {
                 var sentence = wordInfo.sentences[i]
-                if (i > 5) {
+                if (i > hideSentencesCount) {
                     infoHtml += '<li class="hide_sentence_'+wordIndex+'"  style="display:none">'
                 } else {
                     infoHtml += '<li>'
@@ -136,7 +137,7 @@
             }
             infoHtml += '</ol>';
         }
-        if (wordInfo.sentences.length>5) {
+        if (wordInfo.sentences.length>hideSentencesCount) {
             infoHtml += '<button style="margin-left:20px;margin-bottom:10px" onclick="zhankai_sentences('+wordIndex+')">展开</button>'
         }
         return infoHtml;
