@@ -37,7 +37,7 @@ type WordInfo struct {
 	PhTtsMp3  *string             `json:"ph_tts_mp3,omitempty"`
 	Parts     []WordInfoPart      `json:"parts"`
 	Exchange  map[string][]string `json:"exchange"`
-	Sentences []Sentence          `json:"sentences,omitempty"`
+	Sentences []Sentence          `json:"sentences"`
 }
 type WordInfoPart struct {
 	Part  string   `json:"part"`

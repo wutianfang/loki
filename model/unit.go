@@ -114,6 +114,9 @@ func (engine *UnitModel) GetWordList(unitIds string) ([]Word, error) {
 	}
 
 	for index, row := range retWords {
+		if row.Info.Sentences == nil {
+			retWords[index].Info.Sentences = []Sentence{}
+		}
 		phAmMp3 := "/word_mp3/am/" + row.Word[0:2] + "/" + row.Word + ".mp3"
 		phEnMp3 := "/word_mp3/en/" + row.Word[0:2] + "/" + row.Word + ".mp3"
 		retWords[index].Info.PhAmMp3 = &phAmMp3
