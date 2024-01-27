@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -101,6 +102,13 @@ func downloadFile(sourceFile string, targetFile string) error {
 		return err
 	}
 	defer resp.Body.Close()
+
+	dir, _ := filepath.Split(targetFile)
+
+	_, statErr := os.Stat(dir)
+	if !os.IsExist(statErr) {
+		os.MkdirAll(dir, os.ModeDir|0755)
+	}
 
 	out, err := os.Create(targetFile)
 	if err != nil {

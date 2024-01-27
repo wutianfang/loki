@@ -14,9 +14,8 @@ func main() {
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
-	e.Static("/static", "/Users/wutianfang/go/src/github.com/wutianfang/loki/static/")
+	e.Static("/static", "/Users/bytedance/go/src/github.com/wutianfang/loki/static/")
 	e.Static("/word_mp3", conf.MP3_FILE_PATH)
-
 
 	e.GET("/unit/list", unit.List)
 	e.GET("/unit/detail", unit.Detail)
@@ -25,10 +24,6 @@ func main() {
 
 	e.GET("/word/query", word.Query)
 
-
-
 	e.Logger.Fatal(e.Start(":1323"))
 
-
 }
-
