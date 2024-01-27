@@ -30,9 +30,9 @@ func Query(c echo.Context) error {
 	wordModel := model.NewWordModel()
 
 	word, _ := wordModel.Query(params.Word)
-
 	if word != nil {
 		response.Data.Word = *word
+		go checkMp3File(word)
 		return c.JSON(200, response)
 	}
 
@@ -48,7 +48,7 @@ func Query(c echo.Context) error {
 		Word: strings.ToLower(params.Word),
 		Info: *wordInfo,
 	}
-	err = wordModel.Insert(newWord)
+	err = wordModel.Insert(&newWord)
 	if err != nil {
 		response.Errno = 1
 		response.Error = err.Error()
@@ -60,6 +60,20 @@ func Query(c echo.Context) error {
 	_ = c.JSON(200, response)
 
 	return nil
+}
+
+func checkMp3File(word *model.Word) {
+	wordModel := model.NewWordModel()
+	if !wordModel.CheckFile(word) {
+		wordInfo, err := requestIcibaV2(word.Word)
+		if err != nil {
+			return
+		}
+		wordModel.ReDownload(&model.Word{
+			Word: strings.ToLower(word.Word),
+			Info: *wordInfo,
+		})
+	}
 }
 
 func requestIciba(word string) (*model.WordInfo, error) {

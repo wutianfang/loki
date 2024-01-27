@@ -20,6 +20,10 @@ type Word struct {
 	Info       WordInfo `xorm:"json 'info'"`
 }
 
+func (word *Word) GetMp3FilePath(prefix string) string {
+	return conf.MP3_FILE_PATH + "/" + prefix + "/" + word.Word[0:2] + "/" + word.Word + ".mp3"
+}
+
 type Sentence struct {
 	NetworkId  int    `json:"network_id"`
 	NetworkEn  string `json:"network_en"`
@@ -74,15 +78,15 @@ func (model *WordModel) Query(word string) (*Word, error) {
 	return ret, nil
 }
 
-func (model *WordModel) Insert(word Word) (err error) {
+func (model *WordModel) Insert(word *Word) (err error) {
 	if word.Info.PhEnMp3 != nil {
-		err = downloadFile(*word.Info.PhEnMp3, conf.MP3_FILE_PATH+"/en/"+word.Word[0:2]+"/"+word.Word+".mp3")
+		err = downloadFile(*word.Info.PhEnMp3, word.GetMp3FilePath("en"))
 		if err != nil {
 			return err
 		}
 	}
 	if word.Info.PhAmMp3 != nil {
-		err = downloadFile(*word.Info.PhAmMp3, conf.MP3_FILE_PATH+"/am/"+word.Word[0:2]+"/"+word.Word+".mp3")
+		err = downloadFile(*word.Info.PhAmMp3, word.GetMp3FilePath("am"))
 		if err != nil {
 			return err
 		}
@@ -96,7 +100,26 @@ func (model *WordModel) Insert(word Word) (err error) {
 	return err
 }
 
+// 判断单词音频文件是否存在
+func (model *WordModel) CheckFile(word *Word) bool {
+	_, statErr := os.Stat(word.GetMp3FilePath("en"))
+	if statErr == nil {
+		return true
+	}
+	return os.IsExist(statErr)
+}
+
+func (model *WordModel) ReDownload(word *Word) {
+	if word.Info.PhEnMp3 != nil {
+		_ = downloadFile(*word.Info.PhEnMp3, word.GetMp3FilePath("en"))
+	}
+	if word.Info.PhAmMp3 != nil {
+		_ = downloadFile(*word.Info.PhAmMp3, word.GetMp3FilePath("am"))
+	}
+}
+
 func downloadFile(sourceFile string, targetFile string) error {
+	http.DefaultClient.Timeout = time.Second * 3
 	resp, err := http.Get(sourceFile)
 	if err != nil {
 		return err
