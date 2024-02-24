@@ -137,7 +137,7 @@
             }
             infoHtml += '</ol>';
         }
-        if (wordInfo.sentences.length>hideSentencesCount) {
+        if (wordInfo.sentences && wordInfo.sentences.length>hideSentencesCount) {
             infoHtml += '<button style="margin-left:20px;margin-bottom:10px" onclick="zhankai_sentences('+wordIndex+')">展开</button>'
         }
         return infoHtml;
