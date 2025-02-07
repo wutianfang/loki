@@ -49,5 +49,5 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/labstack/echo/v4 v4.7.2
 	github.com/mattn/go-sqlite3 v2.0.2+incompatible
-	xorm.io/builder v0.3.12 // indirect
+	xorm.io/builder v0.3.12
 )
