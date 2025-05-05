@@ -26,6 +26,7 @@ func Query(c echo.Context) error {
 		Word string `form:"word" query:"word"`
 	}{}
 	_ = c.Bind(&params)
+	params.Word = strings.ToLower(params.Word)
 
 	wordModel := model.NewWordModel()
 	word, _ := wordModel.Query(params.Word)
