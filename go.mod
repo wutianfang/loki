@@ -47,7 +47,7 @@ require (
 	github.com/go-xorm/xorm v0.7.9
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
-	github.com/labstack/echo/v4 v4.7.2
+	github.com/labstack/echo/v4 v4.9.0
 	github.com/mattn/go-sqlite3 v2.0.2+incompatible
 	xorm.io/builder v0.3.12
 )
