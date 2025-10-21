@@ -1,12 +1,13 @@
 package unit
 
 import (
+	"time"
+
 	//"github.com/go-xorm/xorm"
 	"github.com/labstack/echo/v4"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/wutianfang/loki/common"
 	"github.com/wutianfang/loki/model"
-	"time"
 )
 
 type Units struct {
@@ -17,7 +18,6 @@ type Units struct {
 }
 
 func List(c echo.Context) error {
-
 	unitModel := model.NewUnitModel()
 	units := unitModel.GetList()
 
@@ -27,7 +27,6 @@ func List(c echo.Context) error {
 }
 
 func Detail(c echo.Context) error {
-
 	unitModel := model.NewUnitModel()
 
 	params := struct {
@@ -53,7 +52,6 @@ type WordListResponse struct {
 }
 
 func WordList(c echo.Context) (err error) {
-
 	params := WordListParams{}
 	response := WordListResponse{}
 

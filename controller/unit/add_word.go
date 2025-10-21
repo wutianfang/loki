@@ -1,17 +1,16 @@
 package unit
 
 import (
+	"strings"
+
 	"github.com/labstack/echo/v4"
 	"github.com/wutianfang/loki/common"
 	"github.com/wutianfang/loki/model"
-	"strings"
 )
 
-
-type AddWordParams struct{
-	UnitId int `form:"unit_id" query:"unit_id"`
-	Word string `form:"word" query:"word"`
-
+type AddWordParams struct {
+	UnitId int    `form:"unit_id" query:"unit_id"`
+	Word   string `form:"word" query:"word"`
 }
 
 type AddWordResponse struct {
@@ -19,15 +18,13 @@ type AddWordResponse struct {
 }
 
 func AddWord(c echo.Context) error {
-
 	params := AddWordParams{}
 	response := AddWordResponse{}
 
 	_ = c.Bind(&params)
 	params.Word = strings.ToLower(params.Word)
 
-
-	if params.UnitId==0 || params.Word == "" {
+	if params.UnitId == 0 || params.Word == "" {
 		response.Errno = 2
 		response.Error = "参数错误！"
 		return c.JSON(200, response)
@@ -35,8 +32,8 @@ func AddWord(c echo.Context) error {
 
 	wordModel := model.NewWordModel()
 
-	wordInfo,err := wordModel.Query(params.Word)
-	if err!= nil {
+	wordInfo, err := wordModel.Query(params.Word)
+	if err != nil {
 		response.Errno = 3
 		response.Error = "单词查询错误！"
 		return c.JSON(200, response)
@@ -50,7 +47,7 @@ func AddWord(c echo.Context) error {
 	unitModel := model.NewUnitModel()
 
 	err = unitModel.AddWord(params.UnitId, params.Word)
-	if err!= nil {
+	if err != nil {
 		response.Errno = 4
 		response.Error = err.Error()
 		return c.JSON(200, response)

@@ -2,10 +2,12 @@ package word
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -36,7 +38,9 @@ func Query(c echo.Context) error {
 		return c.JSON(200, response)
 	}
 
-	wordInfo, err := requestIcibaV2(params.Word)
+	//wordInfo, err := requestIcibaV2(params.Word)
+	wordInfo, err := requestIcibaV3(params.Word)
+
 	if err != nil {
 		response.Errno = 1
 		response.Error = err.Error()
@@ -65,7 +69,7 @@ func Query(c echo.Context) error {
 func checkMp3File(word *model.Word) {
 	wordModel := model.NewWordModel()
 	if !wordModel.CheckFile(word) {
-		wordInfo, err := requestIcibaV2(word.Word)
+		wordInfo, err := requestIcibaV3(word.Word)
 		if err != nil {
 			return
 		}
@@ -496,6 +500,81 @@ func requestIcibaV2(word string) (*model.WordInfo, error) {
 
 	rawResponse := iCibaWordInfoV2{}
 	err = json.Unmarshal(str, &rawResponse)
+
+	wordInfo := rawResponse.PageProps.InitialReduxState.Word.WordInfo
+	if len(wordInfo.BaesInfo.Symbols) > 0 {
+		ret.PhAm = wordInfo.BaesInfo.Symbols[0].PhAm
+		ret.PhEn = wordInfo.BaesInfo.Symbols[0].PhEn
+		ret.PhOther = &wordInfo.BaesInfo.Symbols[0].PhOther
+		if wordInfo.BaesInfo.Symbols[0].PhAmMp3 == "" && wordInfo.BaesInfo.Symbols[0].PhTtsMp3 != "" {
+			wordInfo.BaesInfo.Symbols[0].PhAmMp3 = wordInfo.BaesInfo.Symbols[0].PhTtsMp3
+		}
+		if wordInfo.BaesInfo.Symbols[0].PhEnMp3 == "" && wordInfo.BaesInfo.Symbols[0].PhTtsMp3 != "" {
+			wordInfo.BaesInfo.Symbols[0].PhEnMp3 = wordInfo.BaesInfo.Symbols[0].PhTtsMp3
+		}
+		ret.PhAmMp3 = &wordInfo.BaesInfo.Symbols[0].PhAmMp3
+		ret.PhEnMp3 = &wordInfo.BaesInfo.Symbols[0].PhEnMp3
+		ret.PhTtsMp3 = &wordInfo.BaesInfo.Symbols[0].PhTtsMp3
+	}
+	for _, part := range wordInfo.BaesInfo.Symbols[0].Parts {
+		wordInfoPart := model.WordInfoPart{
+			Part:  part.Part,
+			Means: part.Means,
+		}
+		ret.Parts = append(ret.Parts, wordInfoPart)
+	}
+
+	for _, rawSentence := range wordInfo.NewSentence[0].Sentences {
+		sentence := model.Sentence{
+			NetworkId: rawSentence.Id,
+			NetworkCn: rawSentence.Cn,
+			NetworkEn: rawSentence.En,
+			TtsMp3:    rawSentence.TtsUrl,
+		}
+		ret.Sentences = append(ret.Sentences, sentence)
+	}
+	ret.Exchange = wordInfo.BaesInfo.Exchange
+
+	return ret, nil
+}
+
+type iCibaWordInfoV3 struct {
+	Props iCibaWordInfoV2 `json:"props"`
+}
+
+func requestIcibaV3(word string) (*model.WordInfo, error) {
+	ret := &model.WordInfo{}
+
+	client := &http.Client{}
+	word = url.QueryEscape(word)
+	icibaUrl := "https://www.iciba.com/word?w=" + word
+
+	request, _ := http.NewRequest("GET", icibaUrl, nil)
+	request.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36")
+	response, _ := client.Do(request)
+
+	if response.StatusCode != http.StatusOK {
+		return ret, nil
+	}
+	str, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, err
+	}
+	_ = response.Body.Close()
+
+	//r, _ := regexp.Compile("{\"props\":.*}")
+	//jsonStr := r.FindString(string(str))
+	fmt.Println(str)
+
+	re := regexp.MustCompile(`(?si)<script\b[^>]*?\bid\s*=\s*["']__NEXT_DATA__["'][^>]*?>(.*?)</script>`)
+	m := re.FindStringSubmatch(string(str))
+	if len(m) < 2 {
+		return nil, errors.New("not found")
+	}
+	rawResponseV3 := iCibaWordInfoV3{}
+	err = json.Unmarshal([]byte(m[1]), &rawResponseV3)
+
+	rawResponse := rawResponseV3.Props
 
 	wordInfo := rawResponse.PageProps.InitialReduxState.Word.WordInfo
 	if len(wordInfo.BaesInfo.Symbols) > 0 {
